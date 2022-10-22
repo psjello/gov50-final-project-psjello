@@ -1,7 +1,7 @@
 ---
-title: "Gov 50 Final Project"
-author: "Your Name Here"
-description: "My final project"
+title: "Responsiveness in immigration enforcement"
+author: "Angelo Dagonel (TF)"
+description: "County-level ICE compliance under constituent preferences and electoral dynamics"
 output:
   distill::distill_article:
     self_contained: false
@@ -11,4 +11,14 @@ output:
 
 ## Project thoughts
 
-I am interested in exploring data related to...
+I am interested in exploring data related to immigration enforcement and immigration preferences. A working project with Asya Magazinnik (Massachusetts Institute of Technology) explores how county-level compliance of Sheriff's offices with ICE detainer requests relates to ideal point estimates of immigration preferences. Specifically: our project asks whether the public's immigration preferences, restrictive or accommodating, influences how local law enforcement agencies comply with bureaucratic delegation from ICE.
+
+To investigate this relationship, we are relying on data from three different sources:
+
+1. [Transactional Records Access Clearinghouse (TRAC)](https://trac.syr.edu/immigration/) data on detainer requests sent to county Sheriff's offices from the Department of Homeland Security's sub-agency Immigration Customs and Enforcement (ICE);
+
+2. [Coooperative Election Study (CES)](https://cces.gov.harvard.edu/) data on immigration policy preferences; and
+
+3. novel data of county-level Sheriff elections and electoral type--partisan or non-partisan elections, non-electoral appointment.
+
+TRAC data provides us with our outcome variable, the proportion of ICE detainer requests that are complied with; CES data provides us with our explanatory variable, public immigration policy preferences; and the Sheriff electoral data provides us with a grouping variable.

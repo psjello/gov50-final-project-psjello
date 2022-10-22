@@ -88,29 +88,29 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 
 
   <!--radix_placeholder_meta_tags-->
-  <title>Gov 50 Final Project</title>
+  <title>Responsiveness in immigration enforcement</title>
 
-  <meta property="description" itemprop="description" content="My final project"/>
+  <meta property="description" itemprop="description" content="County-level ICE compliance under constituent preferences and electoral dynamics"/>
 
 
-  <meta name="article:author" content="Your Name Here"/>
+  <meta name="article:author" content="Angelo Dagonel (TF)"/>
 
   <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
-  <meta property="og:title" content="Gov 50 Final Project"/>
+  <meta property="og:title" content="Responsiveness in immigration enforcement"/>
   <meta property="og:type" content="article"/>
-  <meta property="og:description" content="My final project"/>
+  <meta property="og:description" content="County-level ICE compliance under constituent preferences and electoral dynamics"/>
   <meta property="og:locale" content="en_US"/>
 
   <!--  https://dev.twitter.com/cards/types/summary -->
   <meta property="twitter:card" content="summary"/>
-  <meta property="twitter:title" content="Gov 50 Final Project"/>
-  <meta property="twitter:description" content="My final project"/>
+  <meta property="twitter:title" content="Responsiveness in immigration enforcement"/>
+  <meta property="twitter:description" content="County-level ICE compliance under constituent preferences and electoral dynamics"/>
 
   <!--/radix_placeholder_meta_tags-->
   <!--radix_placeholder_rmarkdown_metadata-->
 
   <script type="text/json" id="radix-rmarkdown-metadata">
-  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","author","description","output"]}},"value":[{"type":"character","attributes":{},"value":["Gov 50 Final Project"]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name"]}},"value":[{"type":"character","attributes":{},"value":["Your Name Here"]}]}]},{"type":"character","attributes":{},"value":["My final project"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["distill::distill_article"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["self_contained"]}},"value":[{"type":"logical","attributes":{},"value":[false]}]}]}]}
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","author","description","output"]}},"value":[{"type":"character","attributes":{},"value":["Responsiveness in immigration enforcement"]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name"]}},"value":[{"type":"character","attributes":{},"value":["Angelo Dagonel (TF)"]}]}]},{"type":"character","attributes":{},"value":["County-level ICE compliance under constituent preferences and electoral dynamics"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["distill::distill_article"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["self_contained"]}},"value":[{"type":"logical","attributes":{},"value":[false]}]}]}]}
   </script>
   <!--/radix_placeholder_rmarkdown_metadata-->
   
@@ -186,6 +186,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   d-article table.gt_table td,
   d-article table.gt_table th {
     border-bottom: none;
+    font-size: 100%;
   }
 
   .html-widget {
@@ -1258,15 +1259,21 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 
       // hoverable references
       $('span.citation[data-cites]').each(function() {
-        if ($(this).children()[0].nodeName == "D-FOOTNOTE") {
-          var fn = $(this).children()[0]
+        const citeChild = $(this).children()[0]
+        // Do not process if @xyz has been used without escaping and without bibliography activated
+        // https://github.com/rstudio/distill/issues/466
+        if (citeChild === undefined) return true
+
+        if (citeChild.nodeName == "D-FOOTNOTE") {
+          var fn = citeChild
           $(this).html(fn.shadowRoot.querySelector("sup"))
           $(this).id = fn.id
           fn.remove()
         }
         var refs = $(this).attr('data-cites').split(" ");
         var refHtml = refs.map(function(ref) {
-          return "<p>" + $('#ref-' + ref).html() + "</p>";
+          // Could use CSS.escape too here, we insure backward compatibility in navigator
+          return "<p>" + $('div[id="ref-' + ref + '"]').html() + "</p>";
         }).join("\n");
         window.tippy(this, {
           allowHTML: true,
@@ -1486,7 +1493,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <!--radix_placeholder_front_matter-->
 
 <script id="distill-front-matter" type="text/json">
-{"title":"Gov 50 Final Project","description":"My final project","authors":[{"author":"Your Name Here","authorURL":"#","affiliation":"&nbsp;","affiliationURL":"#","orcidID":""}]}
+{"title":"Responsiveness in immigration enforcement","description":"County-level ICE compliance under constituent preferences and electoral dynamics","authors":[{"author":"Angelo Dagonel (TF)","authorURL":"#","affiliation":"&nbsp;","affiliationURL":"#","orcidID":""}]}
 </script>
 
 <!--/radix_placeholder_front_matter-->
@@ -1496,24 +1503,30 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <!--/radix_placeholder_site_before_body-->
 
 <div class="d-title">
-<h1>Gov 50 Final Project</h1>
+<h1>Responsiveness in immigration enforcement</h1>
 <!--radix_placeholder_categories-->
 <!--/radix_placeholder_categories-->
-<p>My final project</p>
+<p>County-level ICE compliance under constituent preferences and electoral dynamics</p>
 </div>
 
 <div class="d-byline">
   
-  Your Name Here
+  Angelo Dagonel (TF)
   
 
 </div>
 
 <div class="d-article">
 <h2 id="project-thoughts">Project thoughts</h2>
-<p>I am interested in exploring data related to…</p>
-<div class="sourceCode" id="cb1"><pre
-class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
+<p>I am interested in exploring data related to immigration enforcement and immigration preferences. A working project with Asya Magazinnik (Massachusetts Institute of Technology) explores how county-level compliance of Sheriff’s offices with ICE detainer requests relates to ideal point estimates of immigration preferences. Specifically: our project asks whether the public’s immigration preferences, restrictive or accommodating, influences how local law enforcement agencies comply with bureaucratic delegation from ICE.</p>
+<p>To investigate this relationship, we are relying on data from three different sources:</p>
+<ol type="1">
+<li><p><a href="https://trac.syr.edu/immigration/">Transactional Records Access Clearinghouse (TRAC)</a> data on detainer requests sent to county Sheriff’s offices from the Department of Homeland Security’s sub-agency Immigration Customs and Enforcement (ICE);</p></li>
+<li><p><a href="https://cces.gov.harvard.edu/">Coooperative Election Study (CES)</a> data on immigration policy preferences; and</p></li>
+<li><p>novel data of county-level Sheriff elections and electoral type–partisan or non-partisan elections, non-electoral appointment.</p></li>
+</ol>
+<p>TRAC data provides us with our outcome variable, the proportion of ICE detainer requests that are complied with; CES data provides us with our explanatory variable, public immigration policy preferences; and the Sheriff electoral data provides us with a grouping variable.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>

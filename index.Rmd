@@ -357,6 +357,7 @@ We are also fine tuning our ideal point estimation over the various immigration 
 Lastly, one improvement may lay in the type of regression model we are using.
 While the sampling distribution of the detainer rate outcome can be assumed to be normal, the outcome being a "count" of detainees within designated, annual time periods, lends itself to being described as a Poisson process.
 Thus, using a generalized linear model like Poisson regression may be more appropriate to model our outcome.
+Adding county-level fixed effects would also be appropriate, and help control for any county-specific idiosyncracies.
 
 
 <!----------------------------------------------------------------------------->

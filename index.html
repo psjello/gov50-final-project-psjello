@@ -1789,7 +1789,8 @@ We are currently working on building a dataset of county-level sanctuary or fund
 We are also fine tuning our ideal point estimation over the various immigration policy preference items in the CES—certain properties of the combined Bayesian item response theory (IRT) and multivariate regression and post-stratification (MRP) model may offer more reasonable ideal point estimates for counties beyond 2015.</p>
 <p>Lastly, one improvement may lay in the type of regression model we are using.
 While the sampling distribution of the detainer rate outcome can be assumed to be normal, the outcome being a “count” of detainees within designated, annual time periods, lends itself to being described as a Poisson process.
-Thus, using a generalized linear model like Poisson regression may be more appropriate to model our outcome.</p>
+Thus, using a generalized linear model like Poisson regression may be more appropriate to model our outcome.
+Adding county-level fixed effects would also be appropriate, and help control for any county-specific idiosyncracies.</p>
 <!----------------------------------------------------------------------------->
 <div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->

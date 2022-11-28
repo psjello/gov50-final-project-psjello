@@ -1,24 +1,421 @@
 ---
-title: "Responsiveness in immigration enforcement"
-author: "Angelo Dagonel (TF)"
-description: "County-level ICE compliance under constituent preferences and electoral dynamics"
+title: "Elective enforcement"
+author: "Angelo Dagonel (TF) and Asya Magazinnik"
+description: "The politics of local immigration policing"
 output:
   distill::distill_article:
     self_contained: false
 ---
 
+```{r setup, include = FALSE}
+#Options
+options(
+  knitr.kable.NA = '',
+  width = 100)
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center")
+
+#Packages
+library(tidyverse)
+library(fixest) #Faster linear regression functions
+library(broom) #Modeling result functions
+library(kableExtra) #Advanced kable options
+
+#Plotting options
+library(ggridges) #Ridge density plots
+library(patchwork) #Side by side plotting
+library(scales)
+theme_plot <- function () { 
+  theme_linedraw(base_size=10) %+replace% 
+    theme( 
+      panel.grid.minor=element_blank(),
+      panel.grid.major = element_line(color = "grey95"),
+      strip.text = element_text(color="Black",size=10,margin=margin(0,0,8,0)),
+      strip.background=element_rect(fill=NA,color=NA),
+      plot.title=element_text(size=12,margin=margin(0,0,10,0)),
+      plot.caption = 
+        element_text(color="Black",size=8,margin=margin(10,0,0,0), hjust = 1),
+      axis.title.x=element_text(size=10,margin=margin(10,0,0,0)),
+      axis.title.y=element_text(size=10,angle=90,margin=margin(0,10,0,0)))
+}
+theme_set(theme_plot())
+
+#Data
+full <- read_csv("data/detainers_ip.csv") |>
+  mutate(
+    #Outcomes
+    detained_per1000 = ndet_notdenied/(foreign/1000),
+    detained_per1000 = 
+      if_else(detained_per1000 > 1000, 1000, detained_per1000),
+    compliance = ndet_notdenied/detainees,
+    #Explanatory
+    theta_all_rescale = scales::rescale(theta_all),
+    theta_cit_rescale = scales::rescale(theta_cit),
+    #Controls
+    elec_competitive = case_when(
+      vote_share_diff < 1 ~ 1, 
+      vote_share_diff == 1 ~ 0),
+    prop_unemp = unemp_imp/100,
+    county_state = paste0(county, ", ", state)) |>
+  filter(
+    year <= 2015,
+    county != "Dade County") |> #duplicate from TRAC data?
+  #GOV 50 purposes
+  select(
+    year, state, county_state, county, county_fips,
+    detained_per1000,
+    Preferences = theta_all_rescale, 
+    Elected = elec_competitive,
+    Foreign = prop_foreign,
+    Unemployed = prop_unemp
+  )
+```
 
 
-## Project thoughts
+<!-- INTRO <250 words/1-2 par -->
 
-I am interested in exploring data related to immigration enforcement and immigration preferences. A working project with Asya Magazinnik (Massachusetts Institute of Technology) explores how county-level compliance of Sheriff's offices with ICE detainer requests relates to ideal point estimates of immigration preferences. Specifically: our project asks whether the public's immigration preferences, restrictive or accommodating, influences how local law enforcement agencies comply with bureaucratic delegation from ICE.
+<!-- DATA <OPEN words (500-700)/1-3 par -->
+<!-- 	Discussion of data -->
+<!-- 	Discussion of variables -->
+<!--     * PLOT OF OUTCOME VARIABLE !!! -->
+<!-- 	Discussion of research design (cross sec, panel, etc.) -->
+
+<!-- RESULTS <OPEN words/2-3 par -->
+<!--     * PLOT OF BIVARIATE RELATIONSHIP/MAIN RELATIONSHIP -->
+<!--     * REGRESSION RESULTS (Table(s) or plot(s)) -->
+<!-- 	Discussion of significance (or even R2?) -->
+<!-- 	Discussion around causality, confounders, etc. -->
+
+<!-- CONCLUSION <250 words/1 par -->
+<!-- 	Summarizing findings -->
+<!-- 	Limitations -->
+<!-- 	Hypothetical/practicable improvements -->
+
+
+<!----------------------------------------------------------------------------->
+
+# Introduction
+
+
+A working project with [Asya Magazinnik](https://www.asyamagazinnik.com/) (Massachusetts Institute of Technology) explores how county-level compliance of Sheriff's offices with ICE detainer requests relates to ideal point estimates of immigration preferences.
+Specifically: our project asks whether the public's immigration preferences, restrictive or accommodating, influences how local law enforcement agencies comply with bureaucratic delegation from ICE.
+
+
+
+
+<!----------------------------------------------------------------------------->
+
+# Data and research design
+
+
+<!-- 	Discussion of data -->
+<!-- 	Discussion of research design (cross sec, panel, etc.) -->
 
 To investigate this relationship, we are relying on data from three different sources:
 
 1. [Transactional Records Access Clearinghouse (TRAC)](https://trac.syr.edu/immigration/) data on detainer requests sent to county Sheriff's offices from the Department of Homeland Security's sub-agency Immigration Customs and Enforcement (ICE);
 
-2. [Coooperative Election Study (CES)](https://cces.gov.harvard.edu/) data on immigration policy preferences; and
+2. [Coooperative Election Study (CES)](https://cces.gov.harvard.edu/) data on immigration policy preferences;
 
-3. novel data of county-level Sheriff elections and electoral type--partisan or non-partisan elections, non-electoral appointment.
+3. Census American Community Survey (ACS) data on county-level proportions on unemployment and foreign-born population size; and
 
-TRAC data provides us with our outcome variable, the proportion of ICE detainer requests that are complied with; CES data provides us with our explanatory variable, public immigration policy preferences; and the Sheriff electoral data provides us with a grouping variable.
+4. novel data of county-level Sheriff elections and electoral type--partisan or non-partisan elections, non-electoral appointment.
+
+
+Our analyses cover county-level preferences, immigrant detention, and sheriff electoral behavior for 2,493 unique counties from 2010 to 2015.
+Our research design is observational, correlational analysis, and makes no causal assumptions or claims.
+
+
+<!-- 	Discussion of variables -->
+<!--     * PLOT OF OUTCOME VARIABLE !!! -->
+
+TRAC data provides us with our outcome variable, **detainer rate**: the number of detainees, i.e. number of ICE detainer requests that are complied with, per 1,000 foreigners.
+The outcome ranges from `r min(full$detained_per1000, na.rm = TRUE)` to `r max(full$detained_per1000, na.rm = TRUE)`, with a median of `r round(median(full$detained_per1000, na.rm = TRUE))` and a mean of `r round(mean(full$detained_per1000, na.rm = TRUE))`.
+
+```{r fig.width = 4.5, fig.height = 4.5}
+#Compliance requests < 100% (majority at 100%)
+full |>
+  ggplot() +
+  geom_histogram(
+    aes(
+      x = detained_per1000, 
+      y = ..count../sum(..count..)),
+    fill = "grey20", col = "white") +
+  scale_x_log10(labels = comma_format(accuracy = 1)) +
+  labs(
+    title = "Distribution of detainer rates",
+    x = "Detainer rate (detained per 1,000 foreigners)",
+    y = "Proportion",
+    caption = "Source: Transactional Records Access Clearinghouse (TRAC)"
+  )
+```
+
+CES data provides us with our explanatory variable, **ideal point preferences**: an indice-like estimate of county-level immigration policy preferences, using responses from multiple policy support questions.
+The preferences measure ranges from `r round(min(full$Preferences, na.rm = TRUE), 2)` to `r round(max(full$Preferences, na.rm = TRUE), 2)`, where 0 and 1 would reflect the least and the most restrictive immigration policy preferences, respectively.
+Preferences have a median of `r round(median(full$Preferences, na.rm = TRUE), 2)` and a mean of `r round(mean(full$Preferences, na.rm = TRUE), 2)`.
+
+```{r fig.width = 4.5, fig.height = 4.5}
+full |>
+  ggplot() +
+  geom_histogram(
+    aes(
+      x = Preferences, 
+      y = ..count../sum(..count..)),
+    fill = "grey20", col = "white",
+    binwidth = .025) +
+  xlim(0, 1) +
+  labs(
+    title = "Distribution of ideal point preferences",
+    x = expression(paste("Ideal point preferences on immigration policy (", theta, ")")),
+    y = "Proportion",
+    caption = "Source: Cooperative Election Study (CES)")
+```
+
+
+
+
+
+
+
+<!----------------------------------------------------------------------------->
+
+# Results
+
+Before regressing the detainer outcome on ideal point preferences, the bivariate relationship between these variables can be visualized with a scatter plot.
+The graph below plots ideal point preferences towards immigration policy ($\theta$) on the x-axis, and the detainer rate on the y-axis, with each point representing a county-year combination.
+
+<!-- * PLOT OF BIVARIATE RELATIONSHIP/MAIN RELATIONSHIP -->
+
+```{r fig.width = 4.5, fig.height = 4.5}
+full |> 
+  ggplot(aes(
+    x = Preferences, 
+    y = detained_per1000)) +
+  geom_point(shape = 19, size = .05) +
+  geom_smooth(method = "lm", se = FALSE, size = 1) +
+  xlim(0, 1) + ylim(0, 1000) +
+  scale_y_log10(labels = comma_format(accuracy = 1)) +
+  labs(
+    title = "Detainer rate by ideal point preferences",
+    x = expression(paste("Ideal point preferences (", theta, ")")),
+    y = "Detainer rate",
+    caption = "Sources: Cooperative Election Study (CES);\nTransactional Records Access Clearinghouse (TRAC)")
+```
+
+
+Results from two regression models are below.
+The first is a bivariate model, which regresses the detainer rate on ideal point preferences.
+The second is a mutlivariate model which includes county-level covariates, like the proportion of foreigners and the proportion of unemployed labor force participants, and a binary indicator for whether the county sheriff's election was competitive or not.
+
+<!-- * REGRESSION RESULTS (Table(s) or plot(s)) -->
+
+### Regression results
+
+Regression results show that a statistically significant, positive correlation exists between a county's immigration policy preferences, and their rate of immigrant detention.
+
+```{r results = 'asis'}
+#Models: bivariate, multivariate, NO FIXED EFFECTS
+mod1 <- lm(
+  data = full, 
+  detained_per1000 ~ Preferences)
+mod2 <- lm(
+  data = full, 
+  detained_per1000 ~ 
+    Preferences + 
+    Elected + Foreign + Unemployed)
+
+#Regression results table
+results <-
+  full_join(
+    mod1 |> 
+      broom::tidy() |> 
+      select(term, est1 = estimate, se1 = std.error, pval1 = p.value),
+    mod2 |> 
+      broom::tidy() |> 
+      select(term, est2 = estimate, se2 = std.error, pval2 = p.value)) |>
+  select(term, matches("est"), matches("se"), matches ("pval")) 
+
+results |>
+  knitr::kable(
+    booktabs = TRUE, digits = 2,
+    col.names = c("Coefficient", rep(c("Bivariate", "Multivariate"), 3))) |>
+  kable_styling(
+    position = "center", 
+    latex_options = "HOLD_position") |>
+  add_header_above(
+    header = c(
+      " " = 1, 
+      "Coef. estimate" = 2, 
+      "Std. error" = 2, 
+      "P-value" = 2))
+```
+
+The bivariate model suggests that on average, a .10 unit increase in a county's ideal point preference towards immigration policy, i.e. a .10 unit increase towards more restrictive preferences, is associated with an increase of 1.8 detained immigrants per 1,000 foreigners.
+The multivariate model predicts an even larger association.
+Holding electoral competition, the foreign population, and the unemployment rate constant, a .10 unit increase in restrictive preferences is associated with an increase in the detainer rate of 3.4.
+
+
+<!-- Discussion of significance (or even R2?) -->
+
+### Statistical significance
+
+In both bivariate and multivariate models, the association between ideal point preferences and the detainer rate is statistically significant at the test level $\alpha = 0.05$.
+Specifically, the p-value on the coefficient in both models is 0.
+If hypothesizing that the association between preferences and detainer rates was non-zero, then the coefficient's p-value of 0 would suggest there is a near 0% probability that the estimated association observed here is as extreme and meaningless as any estimated association from the null distribution.
+Or: there is a near 100% probability that the estimated association is not due to random chance, because it is so dissimilar to what the estimated association would look like in the null distribution.
+
+
+```{r}
+#Coefficient estimates
+coefest_mod1 <- summary(mod1)$coefficients["Preferences", "Estimate"]
+coefest_mod2 <- summary(mod2)$coefficients["Preferences", "Estimate"]
+
+#Standard errors
+coefse_mod1 <- summary(mod1)$coefficients["Preferences", "Std. Error"]
+coefse_mod2 <- summary(mod2)$coefficients["Preferences", "Std. Error"]
+
+#Probabilistic onfidence intervals
+ci95_mod1 <- c(
+  coefest_mod1 -1.96*coefse_mod1,
+  coefest_mod1 + 1.96*coefse_mod1)
+ci95_mod2 <- c(
+  coefest_mod2 - 1.96*coefse_mod2,
+  coefest_mod2 + 1.96*coefse_mod2)
+```
+
+Assuming the sampling distribution of detainer rates is approximately normal, the standard error on the coefficient estimates for ideal point preferences can be used to construct a probabilistic 95% confidence interval.
+Because 1.96 represents the z-score that captures 95% of the data underneath a standard normal distribution, that value can be multiplied by the coefficient standard error, and this product subtracted and added to the coefficient point estimate, to produce lower and upper bound limits of the 95% confidence interval.
+
+The 95% confidence interval for ideal point preferences under the bivariate model can then be formally described as
+
+$$
+\beta_{\text{Preferences}} = `r round(coefest_mod1, 2)` \in (`r round(ci95_mod1, 2)[1]`,\, `r round(ci95_mod1, 2)[2]`),
+$$
+
+and under the multivariate model as
+
+$$
+\beta_{\text{Preferences}} = `r round(coefest_mod2, 2)` \in (`r round(ci95_mod2, 2)[1]`,\, `r round(ci95_mod2, 2)[2]`).
+$$
+
+Meaning: across repeated samples, 95% of regression estimated correlations between detainer rate and ideal point preferences would be within the bounds above.
+
+
+<!-- Discussion around causality, confounders, etc. -->
+
+### Causality and confounders
+
+Because the explanatory variable of preferences is not randomly assigned, it cannot be treated as a "treatment" variable.
+Thus, increases in ideal point preferences *cannot be said to causally increase* any increase in the detainer rate; rather, the two phenomenon are positively associated with each other, with this estimated association being statistically significant.
+
+Our multivariate model attempts to control for one possible confounder: the county-level foreign born population.
+The overall presence of a foreign population, captured by the covariate on the county-level proportion foreign, could influence preferences towards immigrants if a greater presence produces more empathy and less restrictive preferences, or more antipathy and more restrictive preferences.
+Foreign population size could also be mechanically related to the level of immigrant detainment, if a larger number of foreigners allows for a larger number of them to be detained.
+
+Other possible confounders exist, but are excluded from our model due to data inavailability.
+For example: some counties and states have specific policies either refusing cooperation with ICE detainer requests ("sanctuary" geographies), or are under constraints to comply with detainer requests in fear of losing funding.
+These cooperation/non-cooperation policies can certainly influence the outcome of the detainer rate, but it may also precede or influence the constituency's immigration policy preferences.
+
+Another confounder could be whether an incumbent sheriff has made immigration policy a noticeable platform issue in their election, which could influence the detainer rate because the incumbent has become "constrained" to live up to their platform promises, while also influencing the constituency's preferences if these platform promises are tailored to or end up influencing such preferences.
+
+
+
+<!----------------------------------------------------------------------------->
+
+# Conclusion
+
+<!-- Summarizing findings -->
+
+The regression results demonstrate that increasingly restrictive preferences towards immigration policy are positively and significantly associated with increases in the rate of immigrant detention.
+A multivariate model that controls for possibly influential covariates and confounders produces an even larger estimate of this association.
+The lack of statistical significance on the covariate representing competitive elections suggests that elections do not make sheriff's offices any more or less inclined to detain immigrants---rather, sheriff's offices represent their constituency's immigration preferences regardless.
+
+
+<!-- Limitations -->
+
+Our analyses is limited by having a somewhat incomplete sample from the population, and some conceptual ambiguity related to our outcome variable.
+The first limitation relates to the fact that we currently do not have sheriff election data for all counties, but rather a majority of them.
+This is because some counties, especially rural counties, are notoriously difficult to catalog with respect to election returns, even more so for local level elections like sheriffs' offices.
+
+The second limitation is related to the detainer rate measure.
+While this captures the "intensity" of immigration enforcement, it is an indirect and less clear measure of local law enforcement's *compliance* with ICE detainer requests.
+For example: two counties may have a detainer rate of 10 immigrants per 1,000 foreigners, but the first county could have detained only 10 out of 100 detainer requests with a compliance rate of 10%, while the second county could have detained all 10 of 10 detainer requests with a compliance rate of 100%.
+Modelinng a county sheriff's compliance rate, rather than the detainer rate alone, would offer deeper insight into the relationship between preferences and detainment, but also offer new insights into *local, intergovernmental compliance with federal bureaucracy*.
+
+
+<!-- Hypothetical/practicable improvements -->
+
+We are currently working on improving our project and analyses in a few different respects.
+We are currently working on building a dataset of county-level sanctuary or funding-sanction policies in order to include this possible confounder in future analyses.
+We are also fine tuning our ideal point estimation over the various immigration policy preference items in the CES---certain properties of the combined Bayesian item response theory (IRT) and multivariate regression and post-stratification (MRP) model may offer more reasonable ideal point estimates for counties beyond 2015.
+Lastly, one improvement may lay in the type of regression model we are using.
+While the sampling distribution of the detainer rate outcome can be assumed to be normal, the outcome being a "count" of detainees within designated, annual time periods, lends itself to being described as a Poisson process.
+Thus, using a generalized linear model like Poisson regression may be more appropriate to model our outcome.
+
+
+<!----------------------------------------------------------------------------->
+
+
+```{r fig.width = 9, fig.height = 4.5, include = FALSE}
+mod1_fe <- 
+  feols(
+    data = full,
+    fml = detained_per1000 ~
+        Preferences | county_state)
+mod2_fe <- 
+  feols(
+    data = full,
+    fml = detained_per1000 ~
+        Preferences*Elected +
+        Foreign + Unemployed | county_state)
+mod3_fe <- 
+  fepois(
+    data = full,
+    fml = detained_per1000 ~
+        Preferences*Elected +
+        Foreign + Unemployed | county_state)
+
+mock <- data.frame(
+    Preferences = seq(0, 1, by = .01),
+    Elected = 1,
+    Foreign = .06,
+    Unemployed = .05,
+    county_state = "Camden County, NJ")
+
+
+p <- bind_rows(
+  data.frame(mock, model = "Bivariate OLS", pred = predict(mod1, newdata = mock)),
+  data.frame(mock, model = "Multivariate OLS", pred = predict(mod2, newdata = mock))
+  ) |>
+  ggplot() +
+  geom_line(aes(x = Preferences, y = pred, linetype = model), size = 1) +
+  scale_linetype_manual(values = c("dotted", "solid")) +
+  theme(legend.position = "bottom")
+
+p_fe <- bind_rows(
+  data.frame(mock, model = "Bivariate OLS, fixed effects", pred = predict(mod1_fe, newdata = mock)),
+  data.frame(mock, model = "Multivariate OLS, fixed effects", pred = predict(mod2_fe, newdata = mock))
+  ) |>
+  ggplot() +
+  geom_line(aes(x = Preferences, y = pred, linetype = model), size = 1) +
+  scale_linetype_manual(values = c("dotted", "solid")) +
+  theme(legend.position = "bottom")
+
+p_poisson_fe <- data.frame(
+  mock,
+  model = "Multivariate poisson, fixed effects",
+  pred = predict(mod3_fe, newdata = mock)
+  ) |>
+  ggplot() +
+  geom_line(aes(x = Preferences, y = pred, linetype = model), size = 1) +
+  theme(legend.position = "bottom")
+
+p_fe + p_poisson_fe
+```
+
+
+
+

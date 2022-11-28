@@ -348,9 +348,12 @@ Modelinng a county sheriff's compliance rate, rather than the detainer rate alon
 
 <!-- Hypothetical/practicable improvements -->
 
+### Next steps
+
 We are currently working on improving our project and analyses in a few different respects.
 We are currently working on building a dataset of county-level sanctuary or funding-sanction policies in order to include this possible confounder in future analyses.
 We are also fine tuning our ideal point estimation over the various immigration policy preference items in the CES---certain properties of the combined Bayesian item response theory (IRT) and multivariate regression and post-stratification (MRP) model may offer more reasonable ideal point estimates for counties beyond 2015.
+
 Lastly, one improvement may lay in the type of regression model we are using.
 While the sampling distribution of the detainer rate outcome can be assumed to be normal, the outcome being a "count" of detainees within designated, annual time periods, lends itself to being described as a Poisson process.
 Thus, using a generalized linear model like Poisson regression may be more appropriate to model our outcome.

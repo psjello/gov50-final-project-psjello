@@ -147,7 +147,7 @@ full |>
   scale_x_log10(labels = comma_format(accuracy = 1)) +
   labs(
     title = "Distribution of detainer rates",
-    x = "Detainer rate (detained per 1,000 foreigners)",
+    x = "Detainer rate (log scaled)",
     y = "Proportion",
     caption = "Source: Transactional Records Access Clearinghouse (TRAC)"
   )
@@ -201,18 +201,20 @@ full |>
   labs(
     title = "Detainer rate by ideal point preferences",
     x = expression(paste("Ideal point preferences (", theta, ")")),
-    y = "Detainer rate",
+    y = "Detainer rate (log scaled)",
     caption = "Sources: Cooperative Election Study (CES);\nTransactional Records Access Clearinghouse (TRAC)")
 ```
 
-
-Results from two regression models are below.
-The first is a bivariate model, which regresses the detainer rate on ideal point preferences.
-The second is a mutlivariate model which includes county-level covariates, like the proportion of foreigners and the proportion of unemployed labor force participants, and a binary indicator for whether the county sheriff's election was competitive or not.
+The bivariate plot suggests that there exists a positive relationship between increasingly restrictive ideal point preferences towards immigration policy, and the immigrant detainer rate among county sheriff offices.
+Regression analyses will offer more detailed information about this seemingly positive association.
 
 <!-- * REGRESSION RESULTS (Table(s) or plot(s)) -->
 
 ### Regression results
+
+Results from two regression models are below.
+The first is a bivariate model, which regresses the detainer rate on ideal point preferences.
+The second is a mutlivariate model which includes county-level covariates, like the proportion of foreigners and the proportion of unemployed labor force participants, and a binary indicator for whether the county sheriff's election was competitive or not.
 
 Regression results show that a statistically significant, positive correlation exists between a county's immigration policy preferences, and their rate of immigrant detention.
 
